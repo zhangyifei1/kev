@@ -1,0 +1,41 @@
+services:
+  kev:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: kev-4b:latest
+    container_name: kev-4b
+    restart: unless-stopped
+    ports:
+      - "8009:8009"
+    environment:
+      # V100 (Volta sm_70): 无 bf16 硬件支持、无 TF32、跑不了 fla fused 内核
+      # -> fp32 精确 eager 路径
+      KEV_DTYPE: fp32
+      KEV_FUSED: "0"
+      # 限制 prefix cache 的状态 token 上限,控制 fp32 KV 占用(默认 65536 在 21GB 预算内太激进)
+      KEV_PREFIX_MAX_TOKENS: "16384"
+      KEV_MODEL: jaredpalmer/kev-4b
+      KEV_BASE: Qwen/Qwen3.5-4B-Base
+      KEV_PORT: "8009"
+      HF_ENDPOINT: https://hf-mirror.com
+      HF_HOME: /data/hf
+    volumes:
+      - hf-cache:/data/hf
+    shm_size: 2g
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]   # 固定用 1 卡
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8009/v1/models"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 30m   # 首次启动要下载约 9GB 模型
+
+volumes:
+  hf-cache:
