@@ -13,6 +13,10 @@ services:
       # -> fp32 精确 eager 路径
       KEV_DTYPE: fp32
       KEV_FUSED: "0"
+      # 压测发现:cuda graphs 私有池占 3GB,fp32 eager 部署收益小,关闭为长状态腾显存
+      KEV_CUDA_GRAPHS: "0"
+      # 缓存分配器可扩展段:减少碎片,OOM 时能归还显存
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
       # 限制 prefix cache 的状态 token 上限,控制 fp32 KV 占用(默认 65536 在 21GB 预算内太激进)
       KEV_PREFIX_MAX_TOKENS: "16384"
       KEV_MODEL: jaredpalmer/kev-4b
