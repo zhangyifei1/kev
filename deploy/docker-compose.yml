@@ -19,6 +19,8 @@ services:
       KEV_BASE: Qwen/Qwen3.5-4B-Base
       KEV_PORT: "8009"
       HF_ENDPOINT: https://hf-mirror.com
+      # hf-mirror 不支持 Xet(CAS) 协议,禁用后回退普通 HTTP 下载
+      HF_HUB_DISABLE_XET: "1"
       HF_HOME: /data/hf
     volumes:
       - hf-cache:/data/hf
@@ -31,7 +33,8 @@ services:
               device_ids: ["1"]   # 固定用 1 卡
               capabilities: [gpu]
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://127.0.0.1:8009/v1/models"]
+      # 镜像里没有 curl(apt 源不通装不了),用 python 标准库探活
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8009/v1/models', timeout=8)"]
       interval: 30s
       timeout: 10s
       retries: 10

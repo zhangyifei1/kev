@@ -11,11 +11,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # HF 缓存落在挂载卷,重建容器不用重新下载模型
     HF_HOME=/data/hf
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
+# 注:这台机器到 debian apt 源不通(和 GitHub 一样),不能 apt-get;
+# python:3.13-slim 自带 ca-certificates,https 证书由 pip 依赖 certifi 兜底。
 
 # 源码与依赖清单(kev 的 editable 安装需要 pyproject + 包源码)
 COPY pyproject.toml uv.lock ./
@@ -26,7 +24,7 @@ COPY deploy/requirements.txt /wheels/requirements.txt
 COPY deploy/wheels/ /wheels/
 RUN pip install --no-cache-dir --no-index --find-links /wheels \
         -r /wheels/requirements.txt \
-    && pip install --no-cache-dir --no-index --no-deps -e . \
+    && pip install --no-cache-dir --no-index --no-deps --no-build-isolation -e . \
     && rm -rf /wheels
 
 COPY deploy/entrypoint.sh /app/entrypoint.sh
