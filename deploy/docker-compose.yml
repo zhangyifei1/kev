@@ -17,6 +17,8 @@ services:
       KEV_CUDA_GRAPHS: "0"
       # 缓存分配器可扩展段:减少碎片,OOM 时能归还显存
       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+      # 访问日志是否打印请求 context(state 摘要,截断 300 字符);0 = 不打(默认),1 = 打
+      KEV_LOG_CONTEXT: "0"
       # 限制 prefix cache 的状态 token 上限,控制 fp32 KV 占用(默认 65536 在 21GB 预算内太激进)
       KEV_PREFIX_MAX_TOKENS: "16384"
       KEV_MODEL: jaredpalmer/kev-4b
@@ -28,6 +30,8 @@ services:
       HF_HOME: /data/hf
     volumes:
       - hf-cache:/data/hf
+      # 访问日志落盘到宿主机(结构化行,20MB x 10 轮转)
+      - ./logs:/var/log/kev
     shm_size: 2g
     deploy:
       resources:

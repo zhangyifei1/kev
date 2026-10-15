@@ -18,8 +18,6 @@ echo ">>> 预下载适配器: $MODEL"
 echo ">>> 预下载底座: $BASE"
 "$HF" download "$BASE"
 
-echo ">>> 启动 kev.serve (fp32 eager, V100)"
-exec python -m kev.serve \
-    --run "$MODEL" \
-    --host 0.0.0.0 \
-    --port "${KEV_PORT:-8009}"
+echo ">>> 启动 kev.serve (fp32 eager, V100, 结构化日志落盘 /var/log/kev)"
+# 启动器读 KEV_PORT 环境变量(compose 已设),不传命令行参数
+exec python /app/serve_with_logs.py

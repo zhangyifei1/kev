@@ -28,6 +28,7 @@ RUN pip install --no-cache-dir --no-index --find-links /wheels \
     && rm -rf /wheels
 
 COPY deploy/entrypoint.sh /app/entrypoint.sh
+COPY deploy/serve_with_logs.py /app/serve_with_logs.py
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8009
